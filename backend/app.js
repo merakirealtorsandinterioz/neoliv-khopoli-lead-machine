@@ -1,22 +1,34 @@
 const express = require("express");
+const cors = require("cors"); // ✅ ADD
 const loadProject = require("./engine/projectLoader");
 const normalize = require("./engine/normalizer");
 const scoreLead = require("./engine/aiScorer");
 const routeLead = require("./engine/router");
 
 const app = express();
+
+/* ─────────────────────────────────────────────
+   🌐 CORS (MANDATORY FOR BROWSER CALLS)
+───────────────────────────────────────────── */
+app.use(cors({
+  origin: "*",
+  methods: ["POST", "GET", "OPTIONS"],
+  allowedHeaders: ["Content-Type"]
+}));
+
+app.options("*", cors()); // ✅ Handle preflight
 app.use(express.json());
 
-// ─────────────────────────────────────────────
-// 🔒 In-memory soft throttling (per IP)
-// ─────────────────────────────────────────────
+/* ─────────────────────────────────────────────
+   🔒 In-memory soft throttling (per IP)
+───────────────────────────────────────────── */
 const ipTracker = {};
 const THROTTLE_WINDOW_MS = 60 * 1000; // 1 minute
 const MAX_REQUESTS_PER_WINDOW = 10;
 
-// ─────────────────────────────────────────────
-// 🚀 MAIN LEAD ENDPOINT
-// ─────────────────────────────────────────────
+/* ─────────────────────────────────────────────
+   🚀 MAIN LEAD ENDPOINT
+───────────────────────────────────────────── */
 app.post("/lead", async (req, res) => {
   try {
     const ip =
@@ -60,28 +72,28 @@ app.post("/lead", async (req, res) => {
 
     // ── Final enriched payload
     const payload = {
-  // 🔑 Privyr required fields
-  name: clean.email || `Lead ${clean.phone}`,
-  phone: clean.phone,
-  email: clean.email || "",
+      // 🔑 Privyr required fields
+      name: clean.email || `Lead ${clean.phone}`,
+      phone: clean.phone,
+      email: clean.email || "",
 
-  // 🧠 AI metadata
-  ai_version: "v1",
-  project_id: project.project_id,
-  project_name: project.project_name,
-  intent: clean.intent,
-  plot_size: clean.plot_size,
-  purchase_timeline: clean.purchase_timeline,
-  lead_score: ai.lead_score,
-  lead_stage: ai.lead_stage,
-  persona: ai.persona,
-  sales_note: ai.sales_note,
-  routing,
+      // 🧠 AI metadata
+      ai_version: "v1",
+      project_id: project.project_id,
+      project_name: project.project_name,
+      intent: clean.intent,
+      plot_size: clean.plot_size,
+      purchase_timeline: clean.purchase_timeline,
+      lead_score: ai.lead_score,
+      lead_stage: ai.lead_stage,
+      persona: ai.persona,
+      sales_note: ai.sales_note,
+      routing,
 
-  page_url: clean.page_url || "",
-  ip_address: ip,
-  source: "AI Lead Engine v1"
-};
+      page_url: clean.page_url || "",
+      ip_address: ip,
+      source: "AI Lead Engine v1"
+    };
 
     // ── Fire & forget → Google Sheets
     fetch(process.env.GOOGLE_SHEET_WEBHOOK_URL, {
@@ -97,7 +109,7 @@ app.post("/lead", async (req, res) => {
       body: JSON.stringify(payload)
     }).catch(() => {});
 
-    // ── Instant response
+    // ── Instant response (UX NEVER BLOCKS)
     res.json({
       success: true,
       ai_version: "v1",
@@ -110,9 +122,9 @@ app.post("/lead", async (req, res) => {
   }
 });
 
-// ─────────────────────────────────────────────
-// 🟢 SERVER START
-// ─────────────────────────────────────────────
+/* ─────────────────────────────────────────────
+   🟢 SERVER START
+───────────────────────────────────────────── */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("AI Lead Engine v1 (Hardened) running");
