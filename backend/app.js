@@ -92,6 +92,7 @@ ai.lead_bucket =
       plot_size: clean.plot_size,
       purchase_timeline: clean.purchase_timeline,
       lead_score: ai.lead_score,
+      lead_bucket: ai.lead_bucket,   // ✅ ADD THIS
       lead_stage: ai.lead_stage,
       persona: ai.persona,
       sales_note: ai.sales_note,
