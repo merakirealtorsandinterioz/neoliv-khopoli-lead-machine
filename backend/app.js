@@ -26,41 +26,6 @@ const ipTracker = {};
 const THROTTLE_WINDOW_MS = 60 * 1000; // 1 minute
 const MAX_REQUESTS_PER_WINDOW = 10;
 
-// ===============================
-// AI LEAD SCORING LOGIC
-// ===============================
-
-function calculateLeadScore(lead) {
-  let score = 0;
-
-  // Intent
-  if (lead.intent === "Self Use") score += 25;
-  if (lead.intent === "Investment") score += 15;
-
-  // Plot Size
-  if (lead.plot_size === "4000+") score += 25;
-  if (lead.plot_size === "2500-4000") score += 20;
-  if (lead.plot_size === "1500-2500") score += 15;
-  if (lead.plot_size === "unsure") score += 5;
-
-  // Timeline
-  if (lead.purchase_timeline === "0-3 months") score += 30;
-  if (lead.purchase_timeline === "3-6 months") score += 20;
-  if (lead.purchase_timeline === "exploring") score += 5;
-
-  // Contact commitment
-  if (lead.phone) score += 15;
-  if (lead.email) score += 5;
-
-  return score;
-}
-
-function getLeadBucket(score) {
-  if (score >= 70) return "HOT";
-  if (score >= 40) return "WARM";
-  return "COLD";
-}
-
 
 /* ─────────────────────────────────────────────
    🚀 MAIN LEAD ENDPOINT
