@@ -106,6 +106,11 @@ app.post("/lead", async (req, res) => {
     const ai = scoreLead(clean, project);
     const routing = routeLead(ai.lead_stage, project);
 
+     // Calculate AI score
+   const leadScore = calculateLeadScore(clean);
+   const leadBucket = getLeadBucket(leadScore);
+
+
     // ── Final enriched payload
     const payload = {
       // 🔑 Privyr required fields
