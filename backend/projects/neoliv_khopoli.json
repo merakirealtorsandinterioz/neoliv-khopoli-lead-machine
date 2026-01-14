@@ -1,0 +1,29 @@
+{
+  "project_id": "neoliv_khopoli",
+  "project_name": "NeoLiv Khopoli Plots",
+  "segment": "plotted_development",
+  "pricing": "premium",
+
+  "intent_weights": {
+    "buy": 40,
+    "invest": 30
+  },
+
+  "timeline_weights": {
+    "0-3 months": 40,
+    "3-6 months": 25,
+    "6+ months": 10
+  },
+
+  "plot_size_weights": {
+    "1000-1500": 10,
+    "1500-2500": 20,
+    "2500+": 30
+  },
+
+  "routing_rules": {
+    "hot": ["call", "whatsapp"],
+    "warm": ["whatsapp"],
+    "cold": ["nurture"]
+  }
+}
