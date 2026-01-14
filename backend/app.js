@@ -60,29 +60,28 @@ app.post("/lead", async (req, res) => {
 
     // ── Final enriched payload
     const payload = {
-      ai_version: "v1",
+  // 🔑 Privyr required fields
+  name: clean.email || `Lead ${clean.phone}`,
+  phone: clean.phone,
+  email: clean.email || "",
 
-      project_id: project.project_id,
-      project_name: project.project_name,
+  // 🧠 AI metadata
+  ai_version: "v1",
+  project_id: project.project_id,
+  project_name: project.project_name,
+  intent: clean.intent,
+  plot_size: clean.plot_size,
+  purchase_timeline: clean.purchase_timeline,
+  lead_score: ai.lead_score,
+  lead_stage: ai.lead_stage,
+  persona: ai.persona,
+  sales_note: ai.sales_note,
+  routing,
 
-      intent: clean.intent,
-      plot_size: clean.plot_size,
-      purchase_timeline: clean.purchase_timeline,
-
-      lead_score: ai.lead_score,
-      lead_stage: ai.lead_stage,
-      persona: ai.persona,
-      sales_note: ai.sales_note,
-
-      routing,
-
-      phone: clean.phone,
-      email: clean.email || "",
-      page_url: clean.page_url || "",
-
-      ip_address: ip,
-      source: "AI Lead Engine v1"
-    };
+  page_url: clean.page_url || "",
+  ip_address: ip,
+  source: "AI Lead Engine v1"
+};
 
     // ── Fire & forget → Google Sheets
     fetch(process.env.GOOGLE_SHEET_WEBHOOK_URL, {
