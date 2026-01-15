@@ -70,7 +70,17 @@ app.post("/lead", async (req, res) => {
       ai.lead_score >= 70 ? "HOT" :
       ai.lead_score >= 40 ? "WARM" :
       "COLD";
-     
+
+     // 🧠 Sales Priority (SAFE, NEW FIELD)
+ai.sales_priority = "NORMAL";
+
+     if (
+  intent?.toLowerCase() === "self use" &&
+  purchase_timeline?.includes("0-3")
+) {
+  ai.sales_priority = "HIGH";
+}
+
     const payload = {
       name: clean.email || `Lead ${clean.phone}`,
       phone: clean.phone,
@@ -86,6 +96,7 @@ app.post("/lead", async (req, res) => {
 
       lead_score: ai.lead_score,
       lead_bucket: ai.lead_bucket,
+       sales_priority: ai.sales_priority, // 👈 NEW
       lead_stage: ai.lead_stage,
       persona: ai.persona,
       sales_note: ai.sales_note,
