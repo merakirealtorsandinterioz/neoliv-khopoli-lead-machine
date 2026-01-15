@@ -65,13 +65,16 @@ app.post("/lead", async (req, res) => {
     const ai = scoreLead(clean, project);
     const routing = routeLead(ai.lead_stage, project);
 
-    // 🔥 Monetization bucket
-    ai.lead_bucket =
-      ai.lead_score >= 70 ? "HOT" :
-      ai.lead_score >= 40 ? "WARM" :
-      "COLD";
+    // 🔥 Monetization bucket (SCORE BASED)
+ai.lead_bucket =
+  ai.lead_score >= 70 ? "HOT" :
+  ai.lead_score >= 40 ? "WARM" :
+  "COLD";
 
-     // ================================
+// Default transparency
+let bucket_reason = "Score based";
+
+// ================================
 // FINAL BUCKET OVERRIDE (LOCKED)
 // Business Rule: Sales Truth
 // ================================
@@ -86,7 +89,7 @@ const isImmediate =
   purchase_timeline === "within 3 months";
 
 if (isSelfUse && isImmediate) {
-  lead_bucket = "HOT";
+  ai.lead_bucket = "HOT";
   bucket_reason = "Self Use + ≤3 months (forced HOT)";
 }
 
