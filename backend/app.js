@@ -61,17 +61,15 @@ app.post("/lead", async (req, res) => {
 
     const clean = normalize(req.body);
 
-    // 🧠 AI CORE
     const ai = scoreLead(clean, project);
     const routing = routeLead(ai.lead_stage, project);
 
-    // 🔥 Monetization bucket (UNCHANGED)
     ai.lead_bucket =
       ai.lead_score >= 70 ? "HOT" :
       ai.lead_score >= 40 ? "WARM" :
       "COLD";
 
-    // 🔥 WHATSAPP URL (FOR EVERY ENQUIRY)
+    // WhatsApp (always)
     let whatsapp_url = null;
     const message =
       "Hi, I’m interested in this project. Please share details.";
@@ -85,29 +83,24 @@ app.post("/lead", async (req, res) => {
       name: clean.email || `Lead ${clean.phone}`,
       phone: clean.phone,
       email: clean.email || "",
-
       ai_version: "v1",
       project_id: project.project_id,
       project_name: project.project_name,
-
       intent: clean.intent,
       plot_size: clean.plot_size,
       purchase_timeline: clean.purchase_timeline,
-
       lead_score: ai.lead_score,
       lead_bucket: ai.lead_bucket,
       lead_stage: ai.lead_stage,
       persona: ai.persona,
       sales_note: ai.sales_note,
       routing,
-
       page_url: clean.page_url || "",
       ip_address: ip,
       source: "AI Lead Engine v1",
       created_at: new Date().toISOString()
     };
 
-    // 🔒 SEND TO CRM (NON-BLOCKING)
     fetch(process.env.GOOGLE_SHEET_WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -120,7 +113,7 @@ app.post("/lead", async (req, res) => {
       body: JSON.stringify(payload)
     }).catch(() => {});
 
-    // ✅ FINAL RESPONSE (ALWAYS RETURN)
+    // ✅ SINGLE EXIT POINT
     return res.json({
       success: true,
       whatsapp_url
@@ -131,11 +124,6 @@ app.post("/lead", async (req, res) => {
     return res.json({ success: true });
   }
 });
-
-   } catch (err) {
-  console.error(err);
-  res.json({ success: true });
-}
 
 /* ─────────────────────────────────────────────
    🟢 SERVER START
