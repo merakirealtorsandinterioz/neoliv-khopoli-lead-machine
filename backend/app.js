@@ -122,14 +122,18 @@ if (cleanPhone) {
       body: JSON.stringify(payload)
     }).catch(() => {});
 
-    res.json({ success: true, routing });
+    
 
-  } catch {
+  // ✅ FINAL RESPONSE (THIS WAS MISSING)
     res.json({
-  success: true,
-  whatsapp_url
-});
+      success: true,
+      whatsapp_url
+    });
 
+   } catch (err) {
+  console.error(err);
+  res.json({ success: true });
+}
 
 /* ─────────────────────────────────────────────
    🟢 SERVER START
