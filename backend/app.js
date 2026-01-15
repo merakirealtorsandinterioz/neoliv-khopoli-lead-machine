@@ -70,14 +70,15 @@ app.post("/lead", async (req, res) => {
       "COLD";
 
     // WhatsApp (always)
-    let whatsapp_url = null;
-    const message =
-      "Hi, I’m interested in this project. Please share details.";
+    const businessNumber = process.env.WHATSAPP_BUSINESS_NUMBER;
 
-    const cleanPhone = phone.replace(/\D/g, "");
-    if (cleanPhone) {
-      whatsapp_url = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(message)}`;
-    }
+let whatsapp_url = null;
+const message =
+  "Hi, I’m interested in NeoLiv Khopoli. Please share details.";
+
+if (businessNumber) {
+  whatsapp_url = `https://wa.me/${businessNumber}?text=${encodeURIComponent(message)}`;
+}
 
     const payload = {
       name: clean.email || `Lead ${clean.phone}`,
