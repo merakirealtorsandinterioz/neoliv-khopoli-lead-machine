@@ -65,6 +65,14 @@ app.post("/lead", async (req, res) => {
     const ai = scoreLead(clean, project);
     const routing = routeLead(ai.lead_stage, project);
 
+       // 🔥 Monetization bucket
+    ai.lead_bucket =
+      ai.lead_score >= 70 ? "HOT" :
+      ai.lead_score >= 40 ? "WARM" :
+      "COLD";
+
+
+     
    // ================================
 // 🔒 FINAL LEAD BUCKET INTELLIGENCE
 // Single Source of Truth
