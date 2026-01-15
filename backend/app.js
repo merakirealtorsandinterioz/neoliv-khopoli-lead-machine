@@ -71,7 +71,17 @@ app.post("/lead", async (req, res) => {
       ai.lead_score >= 40 ? "WARM" :
       "COLD";
 
- 
+ let whatsapp_url = null;
+
+const message =
+  "Hi, thanks for your enquiry. Our team will connect with you shortly.";
+
+const cleanPhone = phone.replace(/\D/g, "");
+
+if (cleanPhone) {
+  whatsapp_url = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(message)}`;
+}
+
 
     const payload = {
       name: clean.email || `Lead ${clean.phone}`,
@@ -115,9 +125,11 @@ app.post("/lead", async (req, res) => {
     res.json({ success: true, routing });
 
   } catch {
-    res.json({ success: true });
-  }
+    res.json({
+  success: true,
+  whatsapp_url
 });
+
 
 /* ─────────────────────────────────────────────
    🟢 SERVER START
