@@ -65,32 +65,38 @@ app.post("/lead", async (req, res) => {
     const ai = scoreLead(clean, project);
     const routing = routeLead(ai.lead_stage, project);
 
-    // 🔥 Monetization bucket (SCORE BASED)
-ai.lead_bucket =
-  ai.lead_score >= 70 ? "HOT" :
-  ai.lead_score >= 40 ? "WARM" :
-  "COLD";
-
-// Default transparency
-let bucket_reason = "Score based";
-
-// ================================
-// FINAL BUCKET OVERRIDE (LOCKED)
-// Business Rule: Sales Truth
+   // ================================
+// 🔒 FINAL LEAD BUCKET INTELLIGENCE
+// Single Source of Truth
 // ================================
 
-const isSelfUse =
-  intent?.toLowerCase() === "self use" ||
-  intent?.toLowerCase() === "self-use";
+const intentNormalized = intent?.toLowerCase();
+const timelineNormalized = purchase_timeline?.toLowerCase();
 
-const isImmediate =
-  purchase_timeline === "0-3 months" ||
-  purchase_timeline === "immediate" ||
-  purchase_timeline === "within 3 months";
+// Default values
+ai.lead_bucket = "COLD";
+ai.bucket_reason = "Low intent or long timeline";
 
-if (isSelfUse && isImmediate) {
+// 🔥 HOT: End-user + immediate purchase
+if (
+  (intentNormalized === "self use" || intentNormalized === "self-use") &&
+  (
+    timelineNormalized?.includes("0-3") ||
+    timelineNormalized?.includes("immediate") ||
+    timelineNormalized?.includes("within 3")
+  )
+) {
   ai.lead_bucket = "HOT";
-  bucket_reason = "Self Use + ≤3 months (forced HOT)";
+  ai.bucket_reason = "Self Use + ≤3 months";
+}
+
+// 🟡 WARM: Interested but not immediate
+else if (
+  intentNormalized === "self use" ||
+  intentNormalized === "investment"
+) {
+  ai.lead_bucket = "WARM";
+  ai.bucket_reason = "Interested but not immediate";
 }
 
 
