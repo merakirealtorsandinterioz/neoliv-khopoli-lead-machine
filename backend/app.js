@@ -72,42 +72,6 @@ app.post("/lead", async (req, res) => {
       "COLD";
 
 
-     
-   // ================================
-// 🔒 FINAL LEAD BUCKET INTELLIGENCE
-// Single Source of Truth
-// ================================
-
-const intentNormalized = intent?.toLowerCase();
-const timelineNormalized = purchase_timeline?.toLowerCase();
-
-// Default values
-ai.lead_bucket = "COLD";
-ai.bucket_reason = "Low intent or long timeline";
-
-// 🔥 HOT: End-user + immediate purchase
-if (
-  (intentNormalized === "self use" || intentNormalized === "self-use") &&
-  (
-    timelineNormalized?.includes("0-3") ||
-    timelineNormalized?.includes("immediate") ||
-    timelineNormalized?.includes("within 3")
-  )
-) {
-  ai.lead_bucket = "HOT";
-  ai.bucket_reason = "Self Use + ≤3 months";
-}
-
-// 🟡 WARM: Interested but not immediate
-else if (
-  intentNormalized === "self use" ||
-  intentNormalized === "investment"
-) {
-  ai.lead_bucket = "WARM";
-  ai.bucket_reason = "Interested but not immediate";
-}
-
-
     const payload = {
       name: clean.email || `Lead ${clean.phone}`,
       phone: clean.phone,
