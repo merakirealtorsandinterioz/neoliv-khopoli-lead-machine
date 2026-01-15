@@ -65,46 +65,34 @@ app.post("/lead", async (req, res) => {
     const ai = scoreLead(clean, project);
     const routing = routeLead(ai.lead_stage, project);
 
-       // ================================
-// 🔒 LEAD BUCKET INTELLIGENCE (FINAL)
+    // 🔥 Monetization bucket
+    ai.lead_bucket =
+      ai.lead_score >= 70 ? "HOT" :
+      ai.lead_score >= 40 ? "WARM" :
+      "COLD";
+
+     // ================================
+// FINAL BUCKET OVERRIDE (LOCKED)
+// Business Rule: Sales Truth
 // ================================
 
-// 1️⃣ HARD DEFAULT (system safety – NEVER remove)
-ai.lead_bucket =
-  ai.lead_score >= 70 ? "HOT" :
-  ai.lead_score >= 40 ? "WARM" :
-  "COLD";
+const isSelfUse =
+  intent?.toLowerCase() === "self use" ||
+  intent?.toLowerCase() === "self-use";
 
-ai.bucket_reason = "Score based (fallback)";
+const isImmediate =
+  purchase_timeline === "0-3 months" ||
+  purchase_timeline === "immediate" ||
+  purchase_timeline === "within 3 months";
 
-// 2️⃣ NORMALIZE INPUTS
-const intentNormalized = intent?.toLowerCase() || "";
-const timelineNormalized = purchase_timeline?.toLowerCase() || "";
-
-// 3️⃣ SALES TRUTH OVERRIDE (PRIMARY DECISION)
-if (
-  (intentNormalized === "self use" || intentNormalized === "self-use") &&
-  (
-    timelineNormalized.includes("0-3") ||
-    timelineNormalized.includes("immediate") ||
-    timelineNormalized.includes("within 3")
-  )
-) {
-  ai.lead_bucket = "HOT";
-  ai.bucket_reason = "Self Use + ≤3 months";
-}
-
-// 4️⃣ WARM OVERRIDE (INTERESTED BUT NOT READY)
-else if (
-  intentNormalized === "self use" ||
-  intentNormalized === "investment"
-) {
-  ai.lead_bucket = "WARM";
-  ai.bucket_reason = "Interested but not immediate";
+if (isSelfUse && isImmediate) {
+  lead_bucket = "HOT";
+  bucket_reason = "Self Use + ≤3 months (forced HOT)";
 }
 
 
 
+     
     const payload = {
       name: clean.email || `Lead ${clean.phone}`,
       phone: clean.phone,
