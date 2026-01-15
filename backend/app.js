@@ -42,9 +42,8 @@ app.post("/lead", async (req, res) => {
     );
 
     if (ipTracker[ip].length >= MAX_REQUESTS_PER_WINDOW) {
-  return res.json({ success: true, whatsapp_url });
-}
-
+      return res.json({ success: true });
+    }
 
     ipTracker[ip].push(now);
 
@@ -66,23 +65,21 @@ app.post("/lead", async (req, res) => {
     const ai = scoreLead(clean, project);
     const routing = routeLead(ai.lead_stage, project);
 
-    // 🔥 Monetization bucket
+    // 🔥 Monetization bucket (UNCHANGED)
     ai.lead_bucket =
       ai.lead_score >= 70 ? "HOT" :
       ai.lead_score >= 40 ? "WARM" :
       "COLD";
 
- let whatsapp_url = null;
+    // 🔥 WHATSAPP URL (FOR EVERY ENQUIRY)
+    let whatsapp_url = null;
+    const message =
+      "Hi, I’m interested in this project. Please share details.";
 
-const message =
-  "Hi, thanks for your enquiry. Our team will connect with you shortly.";
-
-const cleanPhone = phone.replace(/\D/g, "");
-
-if (cleanPhone) {
-  whatsapp_url = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(message)}`;
-}
-
+    const cleanPhone = phone.replace(/\D/g, "");
+    if (cleanPhone) {
+      whatsapp_url = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(message)}`;
+    }
 
     const payload = {
       name: clean.email || `Lead ${clean.phone}`,
@@ -99,7 +96,6 @@ if (cleanPhone) {
 
       lead_score: ai.lead_score,
       lead_bucket: ai.lead_bucket,
-      
       lead_stage: ai.lead_stage,
       persona: ai.persona,
       sales_note: ai.sales_note,
@@ -111,6 +107,7 @@ if (cleanPhone) {
       created_at: new Date().toISOString()
     };
 
+    // 🔒 SEND TO CRM (NON-BLOCKING)
     fetch(process.env.GOOGLE_SHEET_WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -123,13 +120,17 @@ if (cleanPhone) {
       body: JSON.stringify(payload)
     }).catch(() => {});
 
-    
-
-  // ✅ FINAL RESPONSE (THIS WAS MISSING)
-    res.json({
+    // ✅ FINAL RESPONSE (ALWAYS RETURN)
+    return res.json({
       success: true,
       whatsapp_url
     });
+
+  } catch (err) {
+    console.error("LEAD ERROR:", err);
+    return res.json({ success: true });
+  }
+});
 
    } catch (err) {
   console.error(err);
