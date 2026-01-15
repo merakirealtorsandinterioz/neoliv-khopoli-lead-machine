@@ -70,28 +70,6 @@ app.post("/lead", async (req, res) => {
       ai.lead_score >= 70 ? "HOT" :
       ai.lead_score >= 40 ? "WARM" :
       "COLD";
-
-     // ================================
-// FINAL BUCKET OVERRIDE (LOCKED)
-// Business Rule: Sales Truth
-// ================================
-
-const isSelfUse =
-  intent?.toLowerCase() === "self use" ||
-  intent?.toLowerCase() === "self-use";
-
-const isImmediate =
-  purchase_timeline === "0-3 months" ||
-  purchase_timeline === "immediate" ||
-  purchase_timeline === "within 3 months";
-
-if (isSelfUse && isImmediate) {
-  lead_bucket = "HOT";
-  bucket_reason = "Self Use + ≤3 months (forced HOT)";
-}
-
-
-
      
     const payload = {
       name: clean.email || `Lead ${clean.phone}`,
