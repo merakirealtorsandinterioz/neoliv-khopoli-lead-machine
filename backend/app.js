@@ -45,8 +45,7 @@ app.post("/lead", async (req, res) => {
   return res.json({ success: true, whatsapp_url });
 }
 
-    }
-
+    
     ipTracker[ip].push(now);
 
     const { project_id, phone } = req.body || {};
