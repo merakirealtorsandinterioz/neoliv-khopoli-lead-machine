@@ -42,8 +42,9 @@ app.post("/lead", async (req, res) => {
     );
 
     if (ipTracker[ip].length >= MAX_REQUESTS_PER_WINDOW) {
-      return res.json({ success: true });
-    }
+  return res.json({ success: true, whatsapp_url });
+}
+
 
     ipTracker[ip].push(now);
 
