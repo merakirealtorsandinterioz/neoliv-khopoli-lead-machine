@@ -42,10 +42,9 @@ app.post("/lead", async (req, res) => {
     );
 
     if (ipTracker[ip].length >= MAX_REQUESTS_PER_WINDOW) {
-  return res.json({ success: true, whatsapp_url });
-}
+      return res.json({ success: true });
+    }
 
-    
     ipTracker[ip].push(now);
 
     const { project_id, phone } = req.body || {};
@@ -62,41 +61,39 @@ app.post("/lead", async (req, res) => {
 
     const clean = normalize(req.body);
 
+    // 🧠 AI CORE
     const ai = scoreLead(clean, project);
     const routing = routeLead(ai.lead_stage, project);
 
+    // 🔥 Monetization bucket
     ai.lead_bucket =
       ai.lead_score >= 70 ? "HOT" :
       ai.lead_score >= 40 ? "WARM" :
       "COLD";
 
-    // WhatsApp (always)
-    const businessNumber = process.env.WHATSAPP_BUSINESS_NUMBER;
-
-let whatsapp_url = null;
-const message =
-  "Hi, I’m interested in NeoLiv Khopoli. Please share details.";
-
-if (businessNumber) {
-  whatsapp_url = `https://wa.me/${businessNumber}?text=${encodeURIComponent(message)}`;
-}
+ 
 
     const payload = {
       name: clean.email || `Lead ${clean.phone}`,
       phone: clean.phone,
       email: clean.email || "",
+
       ai_version: "v1",
       project_id: project.project_id,
       project_name: project.project_name,
+
       intent: clean.intent,
       plot_size: clean.plot_size,
       purchase_timeline: clean.purchase_timeline,
+
       lead_score: ai.lead_score,
       lead_bucket: ai.lead_bucket,
+      
       lead_stage: ai.lead_stage,
       persona: ai.persona,
       sales_note: ai.sales_note,
       routing,
+
       page_url: clean.page_url || "",
       ip_address: ip,
       source: "AI Lead Engine v1",
@@ -115,15 +112,10 @@ if (businessNumber) {
       body: JSON.stringify(payload)
     }).catch(() => {});
 
-    // ✅ SINGLE EXIT POINT
-    return res.json({
-      success: true,
-      whatsapp_url
-    });
+    res.json({ success: true, routing });
 
-  } catch (err) {
-    console.error("LEAD ERROR:", err);
-    return res.json({ success: true });
+  } catch {
+    res.json({ success: true });
   }
 });
 
