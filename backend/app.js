@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const fetch = require("node-fetch");
+
 const loadProject = require("./engine/projectLoader");
 const normalize = require("./engine/normalizer");
 const scoreLead = require("./engine/aiScorer");
@@ -61,34 +63,38 @@ app.post("/lead", async (req, res) => {
 
     const clean = normalize(req.body);
 
-    // 🧠 AI CORE
+    /* 🧠 AI CORE */
     const ai = scoreLead(clean, project);
     const routing = routeLead(ai.lead_stage, project);
 
-    // 🔥 Monetization bucket
+    /* 🔥 Lead Bucket */
     ai.lead_bucket =
       ai.lead_score >= 70 ? "HOT" :
       ai.lead_score >= 40 ? "WARM" :
       "COLD";
 
- 
-
+    /* 📦 Final Payload */
     const payload = {
       name: clean.email || `Lead ${clean.phone}`,
       phone: clean.phone,
       email: clean.email || "",
 
       ai_version: "v1",
+
       project_id: project.project_id,
       project_name: project.project_name,
 
-      intent: clean.intent,
-      plot_size: clean.plot_size,
-      purchase_timeline: clean.purchase_timeline,
+      intent: clean.intent || "",
+
+      // Support both plotted + apartment projects
+      plot_size: clean.plot_size || "",
+      configuration: clean.configuration || "",
+      budget: clean.budget || "",
+
+      purchase_timeline: clean.purchase_timeline || "",
 
       lead_score: ai.lead_score,
       lead_bucket: ai.lead_bucket,
-      
       lead_stage: ai.lead_stage,
       persona: ai.persona,
       sales_note: ai.sales_note,
@@ -100,21 +106,54 @@ app.post("/lead", async (req, res) => {
       created_at: new Date().toISOString()
     };
 
-    fetch(process.env.GOOGLE_SHEET_WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    }).catch(() => {});
+    /* 📊 GOOGLE SHEET */
+    if (process.env.GOOGLE_SHEET_WEBHOOK_URL) {
+      fetch(process.env.GOOGLE_SHEET_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).catch(() => {});
+    }
 
-    fetch(process.env.PRIVYR_WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    }).catch(() => {});
+    /* 🔗 PRIVYR WEBHOOK */
+    if (process.env.PRIVYR_WEBHOOK_URL) {
+      fetch(process.env.PRIVYR_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).catch(() => {});
+    }
+
+    /* 💬 WHATSAPP AUTO TRIGGER */
+    if (process.env.WHATSAPP_API_URL && process.env.WHATSAPP_TOKEN) {
+      fetch(process.env.WHATSAPP_API_URL, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          to: clean.phone,
+          template: project.whatsapp_template || "project_details",
+          name: payload.name,
+          project: payload.project_name
+        })
+      }).catch(() => {});
+    }
+
+    /* 📧 EMAIL WEBHOOK */
+    if (process.env.EMAIL_WEBHOOK_URL) {
+      fetch(process.env.EMAIL_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).catch(() => {});
+    }
 
     res.json({ success: true, routing });
 
-  } catch {
+  } catch (err) {
+    console.error("Lead Error:", err);
     res.json({ success: true });
   }
 });
@@ -124,5 +163,5 @@ app.post("/lead", async (req, res) => {
 ───────────────────────────────────────────── */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("AI Lead Engine v1 (Monetization Ready) running");
+  console.log("AI Lead Engine v2 (Automation Enabled) running");
 });
