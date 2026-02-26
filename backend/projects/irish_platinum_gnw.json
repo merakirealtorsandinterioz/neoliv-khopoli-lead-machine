@@ -1,0 +1,36 @@
+{
+  "project_id": "irish_platinum_gnw",
+  "project_name": "Irish Platinum GNW",
+  "segment": "luxury_apartment",
+  "pricing": "premium",
+
+  "intent_weights": {
+    "Self Use": 40,
+    "Investment": 30
+  },
+
+  "timeline_weights": {
+    "0-3": 40,
+    "3-6": 25,
+    "Exploring": 10
+  },
+
+  "configuration_weights": {
+    "3 BHK": 20,
+    "4 BHK": 30,
+    "Unsure": 10
+  },
+
+  "budget_weights": {
+    "1.5-2.5": 20,
+    "2.5-3.5": 30,
+    "3.5+": 40,
+    "Unsure": 10
+  },
+
+  "routing_rules": {
+    "hot": ["call", "whatsapp"],
+    "warm": ["whatsapp"],
+    "cold": ["nurture"]
+  }
+}
