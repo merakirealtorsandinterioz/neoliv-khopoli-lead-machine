@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const fetch = require("node-fetch");
 
 const loadProject = require("./engine/projectLoader");
 const normalize = require("./engine/normalizer");
@@ -33,6 +32,7 @@ const MAX_REQUESTS_PER_WINDOW = 10;
 ───────────────────────────────────────────── */
 app.post("/lead", async (req, res) => {
   try {
+
     const ip =
       req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
       req.socket.remoteAddress ||
@@ -80,14 +80,15 @@ app.post("/lead", async (req, res) => {
       email: clean.email || "",
 
       ai_version: "v1",
-
       project_id: project.project_id,
       project_name: project.project_name,
 
       intent: clean.intent || "",
 
-      // Support both plotted + apartment projects
+      // NeoLiv (plots)
       plot_size: clean.plot_size || "",
+
+      // Irish (apartments)
       configuration: clean.configuration || "",
       budget: clean.budget || "",
 
@@ -115,35 +116,9 @@ app.post("/lead", async (req, res) => {
       }).catch(() => {});
     }
 
-    /* 🔗 PRIVYR WEBHOOK */
+    /* 🔗 PRIVYR */
     if (process.env.PRIVYR_WEBHOOK_URL) {
       fetch(process.env.PRIVYR_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      }).catch(() => {});
-    }
-
-    /* 💬 WHATSAPP AUTO TRIGGER */
-    if (process.env.WHATSAPP_API_URL && process.env.WHATSAPP_TOKEN) {
-      fetch(process.env.WHATSAPP_API_URL, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.WHATSAPP_TOKEN}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          to: clean.phone,
-          template: project.whatsapp_template || "project_details",
-          name: payload.name,
-          project: payload.project_name
-        })
-      }).catch(() => {});
-    }
-
-    /* 📧 EMAIL WEBHOOK */
-    if (process.env.EMAIL_WEBHOOK_URL) {
-      fetch(process.env.EMAIL_WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -163,5 +138,5 @@ app.post("/lead", async (req, res) => {
 ───────────────────────────────────────────── */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("AI Lead Engine v2 (Automation Enabled) running");
+  console.log("AI Lead Engine v1 (Stable Multi-Project) running");
 });
